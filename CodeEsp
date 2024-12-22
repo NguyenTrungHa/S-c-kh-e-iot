@@ -1,0 +1,99 @@
+#include "ThingSpeak.h" // khai báo thư viện thingspeak
+#include <ESP8266WiFi.h>  //khai báo thư viện esp8266
+const char *tenWifi = "Tang 4";   //khai báo tên wifi
+const char *mkWifi = "hoilamgi"; // khai báo mật khẩu
+unsigned long channelNumber =  2792676; // khai báo mã kênh
+const char * writeAPIKey = "DMHCVNF5NMNZQKIK";  //khai báo mã API
+/////////////////////////////
+#include <SoftwareSerial.h>
+SoftwareSerial nodemcu(D1,D2);//tx-2, rx-3
+
+String myString;  // Khai báo biến mystring kiểu string
+char rdata;  //khai báo biến rdata kiểu char
+ 
+int firstVal, secondVal,thirdVal,fourVal; //khai báo các biến kiểu int
+int sdata1;  
+int sdata2;
+
+//////////////////
+WiFiClient client;  //tạo trạm wifi
+int number1 = 0; //khai báo biến
+int number2 = 0;
+
+unsigned long lastTime = 0; //khai báo biến lastime = 0
+unsigned long timerDelay = 100; //khai báo biến timerDelay =100
+void setup() {
+  Serial.begin(9600); //mở cổng truyền thông tốc độ 9600
+  SetUp(tenWifi,mkWifi);  //khởi tạo tenwwifi, makwifi
+   nodemcu.begin(9600);
+}
+
+void loop() {
+   if (nodemcu.available() > 0 ) //Nếu cổng truyền thông mở có sự kiện
+  {
+    rdata = nodemcu.read(); //đọc cổng truyền thông lưu giá trị vào biến rdata
+    myString = myString+ rdata;  //lưu các giá trị rdata vào biến myString
+   // Serial.print(rdata);
+    if( rdata == '\n')  //nếu biến rdata có kí tự xuống dòng
+    {
+
+String l = getValue(myString, ',', 0);  // tách kí tự đầu tiên lưu vào biến l
+String m = getValue(myString, ',', 1);  // tách kí tự thứ 2 lưu vào biến m
+
+ 
+firstVal = l.toInt();  //chuyển đổi biến sang số nguyên
+secondVal = m.toInt();
+
+
+ myString = "";  //lưu biến = kí tự trống để đọc lại
+// end new code
+    }
+  }
+//////////////////////////////////////////////////
+  // put your main code here, to run repeatedly:
+  Serial.println(firstVal); //in biến đầu tiên ra màn hình.
+  if ((millis() - lastTime) > timerDelay) {  //nếu thời gian đọc lớn hơn thời gian mặc định
+    ThingSpeak.setField(1, number1); //xuất dữ liệu số 1 lên trường 1
+    ThingSpeak.setField(2, number2); //xuất dữ liệu số 2 lên trường 2
+   
+    number1 = firstVal;
+    number2 = secondVal;
+
+    ThingSpeak.writeFields(channelNumber, writeAPIKey);  //tạo trường có mã kênh và mã API mặc định
+    lastTime = millis(); //gán thời gian đọc biến = 0.
+  }
+
+}
+
+void SetUp(const char *tenWifi,const char *mkWifi){ 
+  
+  Serial.println(""); // in giá trị ra màn hình
+  Serial.print("Ket noi den wifi ");
+  Serial.println(tenWifi);
+  WiFi.begin(tenWifi,mkWifi); //*  tạo kết nối với tên wifi và mật khẩu
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi da duoc ket noi");
+  Serial.println("dia chi IP: "); 
+  Serial.println(WiFi.localIP());
+
+  ThingSpeak.begin(client);// bắt đầu tạo trạm kết nối thingspeak
+}
+String getValue(String data, char separator, int index)  //hàm tác kí tự. cái này phải học lập trình chuỗi mới giải thích được.
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+ 
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
