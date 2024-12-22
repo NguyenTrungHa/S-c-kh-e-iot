@@ -1,0 +1,46 @@
+
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+#include <SoftwareSerial.h>
+SoftwareSerial nodemcu(2,3);//tx-2, rx-3
+String cdata; 
+LiquidCrystal_I2C lcd(0x27,16,2);
+int ecg;
+int pluse;
+void setup() {
+// initialize the serial communication:
+Serial.begin(9600);
+pinMode(10, INPUT); // Setup for leads off detection LO +
+pinMode(11, INPUT); // Setup for leads off detection LO -
+pinMode(A0,INPUT);
+ pinMode(A1,INPUT);
+ nodemcu.begin(9600);
+ lcd.init();
+  lcd.backlight();
+}
+ 
+void loop() {
+
+
+ pluse = analogRead(A1);
+if((digitalRead(10) == 1)||(digitalRead(11) == 1)){
+ecg=0;
+}
+else{
+// send the value of analog input 0:
+ecg=analogRead(A0);
+}
+cdata = cdata + ecg+","+pluse;
+nodemcu.println(cdata);
+Serial.println(cdata); 
+delay(1000); // 100 milli seconds
+   cdata = ""; 
+ lcd.setCursor(0,0);
+  lcd.print("ECG: ");
+  lcd.print(ecg);
+  lcd.setCursor(0,1);
+  lcd.print("Pluse: ");
+  lcd.print(pluse);
+
+
+}
