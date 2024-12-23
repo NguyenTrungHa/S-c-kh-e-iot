@@ -37,11 +37,11 @@ Lưu ý:
 <p>
  Sơ đồ mạch của Arduino uno R3 và cảm biến ECG
  
-![image](anh.png)
+![anh](https://github.com/user-attachments/assets/b8f888e1-19ea-49f4-8241-f873d101c411)
  
  Sơ đồ mạch của Arduino uno R3 và màn hình LCD
  
-![image](anh2.jpg)
+![anh2](https://github.com/user-attachments/assets/4e91ac1e-26a9-4523-adf9-15c14686d959)
 
 
 ## Library
